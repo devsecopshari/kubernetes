@@ -1,6 +1,6 @@
 1. Syntax -  kubectl apply -f <pod filename>     --------------> create pods " -f means file  "
    Example : kubectl apply -f nginx.yaml 
-
+ 
 2. kubectl get pods -w                           ------------------ ---> watch and show how pods are creating 
 
 3. syntax - kubectl describe pods <pod name>     -------> details of pods
