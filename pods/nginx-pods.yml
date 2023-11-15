@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: pod
+metadata:
+  name: nginx
+  labels:
+    name: nginx
+    env : production
+spec:
+  containers:
+  - name: nginx-user
+    image: nginx
+    ports:
+    - containerPort: 80
+      name: http-server
+      protocol: TCP

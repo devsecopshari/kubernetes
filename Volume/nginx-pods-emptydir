@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    ports:
+      - containerPort: 80
+        hostPort: 8097
+    volumeMounts:
+      - name: nginx-storage
+        mountPath: /usr/share/nginx/html
+  volumes:
+    - name: nginx-storage
+      emptyDir: {} 
+
+     
