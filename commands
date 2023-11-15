@@ -1,0 +1,22 @@
+1. Syntax -  kubectl apply -f <pod filename>     --------------> create pods " -f means file  "
+   Example : kubectl apply -f nginx.yaml 
+
+2. kubectl get pods -w                           ------------------ ---> watch and show how pods are creating 
+
+3. syntax - kubectl describe pods <pod name>     -------> details of pods
+   Example : kubectl describe pods jenkins-cicd
+  
+4. kubectl logs pods <pod name>                  -----------> logs of pods 
+   Example : kubectl logs pods jenkins-cicd
+  
+5. kubectl get pods -------------------------> display the list of pods
+  
+6. kubectl get pods -o wide -----------------> display the list of pods indetailed
+
+7. kubectl delete pods <pod name> ---------> delete the pods
+   Example kubectl delete pods jenkins-cicd
+
+8. kubectl edit pods <pod name> -----------> edit the pods after creation 
+   Example kubectl edit pods jenkins-cicd
+  
+9. /var/lib/kubelet/pods/<replace ur uid>/volumes/kubernetes.io~empty-dir/jenkins-data ----------------> path of volumes where empty dir gets stored 
