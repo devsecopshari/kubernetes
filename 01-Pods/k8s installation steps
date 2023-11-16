@@ -1,0 +1,99 @@
+1. Please execute below commands on all nodes used for kubernetes cluster.
+
+containerd:
+
+cat > /etc/modules-load.d/containerd.conf <<EOF
+overlay
+br_netfilter
+EOF
+
+modprobe overlay
+modprobe br_netfilter
+
+# Setup required sysctl params, these persist across reboots.
+cat > /etc/sysctl.d/99-kubernetes-cri.conf <<EOF
+net.bridge.bridge-nf-call-iptables  = 1
+net.ipv4.ip_forward                 = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF
+
+sysctl --system
+
+2. Set up the repository * Install packages to allow apt to use a repository over HTTPS
+
+apt-get update && apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+
+## Add Docker’s official GPG key
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+
+## Add Docker apt repository.
+add-apt-repository \
+    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+    $(lsb_release -cs) \
+    stable"
+
+## Install containerd
+apt-get update && apt-get install -y containerd.io
+
+# Configure containerd
+mkdir -p /etc/containerd
+containerd config default > /etc/containerd/config.toml
+sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+
+# Restart containerd
+systemctl restart containerd
+
+# To execute crictl CLI commands, ensure we create a configuration file as mentioned below
+cat > /etc/crictl.yaml <<EOF
+runtime-endpoint: unix:///run/containerd/containerd.sock
+image-endpoint: unix:///run/containerd/containerd.sock
+timeout: 2
+EOF
+
+3. Install kubernetes packages on all nodes.
+
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl
+
+
+https://github.com/techiescamp/vagrant-kubeadm-kubernetes/pull/46/commits/8c8ba0d6ac8000880a07260895d8622bfcaf35ec
+
+curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
+
+Download GPG key
+
+
+Create a k8s repo on local system:
+
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+4. Intallation
+
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+
+*****************************************************Only on master node ************************************
+
+On control nodes (k8s master node):
+
+We are bootstrapping control plane node.
+"--pod-network-cidr" was changes here on local setup. Since my VMs are using same series network.
+So instead of applying the calico YAML files, first download them and update the CIDR of pod to be used cidr which ever "For example: 10.244.0.0/16 private class".
+
+
+kubeadm init --apiserver-advertise-address=192.168.1.90 --cri-socket=/run/containerd/containerd.sock --pod-network-cidr=10.244.0.0/16
+
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+
+kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+
+****************************************************** On Worker Node ***********************************************
+
+Paste the code which u got in your system 
+
+kubeadm join 10.128.0.3:6443 --token wt98bb.4gsf0qqicl5vg0gm \
+        --discovery-token-ca-cert-hash sha256:1c4bc8d73e4d45e78569ff3644e67b75946289cb41adecb26cedafb0608df64f 
