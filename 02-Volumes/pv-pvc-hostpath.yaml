@@ -8,7 +8,7 @@ spec:
     storage: 1Gi  #Mi,Gi,Ti,Pi
   accessModes:
     - ReadWriteOnce  #ReadWriteMany, ReadOnlyMany
-  persistentVolumeReclaimPolicy: Delete
+  persistentVolumeReclaimPolicy: Delete #recycle #retain
   hostPath:
     path: "/tmp/data"
 ---
