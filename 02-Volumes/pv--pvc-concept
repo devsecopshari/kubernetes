@@ -1,0 +1,52 @@
+root@k8smaster:/home/hari/kubernetes/volume# kubectl get pv
+NAME          CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                   STORAGECLASS    REASON   AGE
+pv-hostpath   1Gi        RWO            Retain           Bound    default/task-pv-claim   local-storage            11s
+root@k8smaster:/home/hari/kubernetes/volume# kubectl get pvc
+NAME            STATUS   VOLUME        CAPACITY   ACCESS MODES   STORAGECLASS    AGE
+task-pv-claim   Bound    pv-hostpath   1Gi        RWO            local-storage   24s
+
+
+root@k8smaster:/home/hari/kubernetes/volume# kubectl get pods
+NAME          READY   STATUS    RESTARTS   AGE
+task-pv-pod   1/1     Running   0          34s
+
+
+root@k8smaster:/home/hari/kubernetes/volume# kubectl delete pods task-pv-pod
+pod "task-pv-pod" deleted
+root@k8smaster:/home/hari/kubernetes/volume# kubectl delete pvc task-pv-claim
+persistentvolumeclaim "task-pv-claim" deleted
+
+
+root@k8smaster:/home/hari/kubernetes/volume# kubectl get pv
+NAME          CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS     CLAIM                   STORAGECLASS    REASON   AGE
+pv-hostpath   1Gi        RWO            Retain           Released   default/task-pv-claim   local-storage            76s
+root@k8smaster:/home/hari/kubernetes/volume# kubectl apply -f nginx-pv-pvc-hostpath.yaml
+persistentvolume/pv-hostpath unchanged
+persistentvolumeclaim/task-pv-claim created
+pod/task-pv-pod created
+
+
+root@k8smaster:/home/hari/kubernetes/volume# kubectl get pvc
+NAME            STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS    AGE
+task-pv-claim   Pending                                      local-storage   22s
+root@k8smaster:/home/hari/kubernetes/volume# kubectl edit pv pv-hostpath
+persistentvolume/pv-hostpath edited
+root@k8smaster:/home/hari/kubernetes/volume# kubectl get pvc
+NAME            STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS    AGE
+task-pv-claim   Pending                                      local-storage   91s
+
+
+root@k8smaster:/home/hari/kubernetes/volume# kubectl get pv
+NAME          CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS    REASON   AGE
+pv-hostpath   1Gi        RWO            Retain           Available           local-storage            3m8s
+root@k8smaster:/home/hari/kubernetes/volume# kubectl get pvc
+NAME            STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS    AGE
+task-pv-claim   Pending                                      local-storage   100s
+
+
+root@k8smaster:/home/hari/kubernetes/volume# kubectl get pv
+NAME          CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                   STORAGECLASS    REASON   AGE
+pv-hostpath   1Gi        RWO            Retain           Bound    default/task-pv-claim   local-storage            3m14s
+root@k8smaster:/home/hari/kubernetes/volume# kubectl get pvc
+NAME            STATUS   VOLUME        CAPACITY   ACCESS MODES   STORAGECLASS    AGE
+task-pv-claim   Bound    pv-hostpath   1Gi        RWO            local-storage   104s
