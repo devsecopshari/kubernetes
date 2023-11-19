@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+  replicas: 4
+  selector:
+    matchLabels:
+      app: temp-nginx
+  template:
+    metadata:
+      labels:
+        app: temp-nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80

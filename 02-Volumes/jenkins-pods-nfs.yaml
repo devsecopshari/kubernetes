@@ -35,3 +35,6 @@ spec:
 
 in master
 chown 1000:1000 /var/study/nfs/
+
+if hostport change in nodeport
+chown 1000:1000 /mnt/jenkins_home

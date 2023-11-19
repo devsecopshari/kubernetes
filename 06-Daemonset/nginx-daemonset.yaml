@@ -1,0 +1,29 @@
+apiVersion: apps/v1 #extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: frontend
+spec:
+  selector:
+    matchLabels:
+      app: frontend-webserver
+  updateStrategy:
+    type: RollingUpdate #OnDelete
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: frontend-webserver
+    spec:
+      tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        effect: NoSchedule
+      containers:
+        - name: webserver
+          image: nginx:1.14.2
+          ports:
+          - containerPort: 80
+
+Taints:             node-role.kubernetes.io/control-plane:NoSchedule
+
+For finding the taint values: ->  kubectl describe node k8smaster   syntax : kubectl describe node nodename

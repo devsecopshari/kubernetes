@@ -29,3 +29,45 @@
 11. kubectl get pvc
 
 12. kubectl delete pvc pvcfile name
+
+13. kubectl get rc 
+
+14. kubectl get rs
+
+15. kubectl get pods -o wide --show-labels 
+
+16. kubectl api-resources | grep Deployment
+
+17. Kubectl rollout history deployment/deploymentname
+
+18. Kubectl set image deployment/deploymentname containername=image --record
+    Example Kubectl set image deployment/deploymentname nginx=nginx:latest --record
+
+19. Kubectl get all -o wide
+
+20.  kubectl rollout undo deployment/deployment --to-revision=1 ( or )  kubectl rollout undo deployment/deploymentname --to-revision=1 ------------> if you mention any number it will jump to that revision
+
+21. Kubectl describe computeplaneone  # Per node only we can run 110 Pods  
+
+Rollingupdate : in deployment once pod is created then only old pod will delete 
+Rollingupdate : in demonset once the pod is deleted then only new pod will created
+
+22. Mysql Login -> Mysql -h nodeip -u root -p
+
+23. kubectl edit daemonset frontend   syntax : kubectl edit kind medataname
+Example :
+apiVersion: apps/v1 #extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: 
+
+24.  kubectl describe node k8smaster   syntax : kubectl describe node nodename
+
+
+  
+
+
+
+
+
+
