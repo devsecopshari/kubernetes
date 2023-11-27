@@ -9,7 +9,7 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 80
-  type: ClusterIP    # type not needed when ClusterIP
+  type: LoadBalancer    # type not needed when ClusterIP
 ---
 apiVersion: v1
 kind: Pod

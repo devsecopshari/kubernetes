@@ -16,7 +16,7 @@ spec:
         app: frontend-webserver
     spec:
       tolerations:
-      - key: node-role.kubernetes.io/control-plane
+      - key: node-role.kubernetes.io/master
         effect: NoSchedule
       containers:
         - name: webserver

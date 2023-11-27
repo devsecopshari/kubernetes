@@ -21,7 +21,7 @@ spec:
           value: '%'
           # Use secret in real usage
         - name: MYSQL_ROOT_PASSWORD
-          value: password
+          value: MYSQL_PASSWORD
         ports:
         - containerPort: 3306
           name: mysql

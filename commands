@@ -63,6 +63,23 @@ metadata:
 
 24.  kubectl describe node k8smaster   syntax : kubectl describe node nodename
 
+25. kubectl get ep  ----> to list the ip address of the node cluster by using serivce 
+
+26. to login kubectl run test-pod --rm -it --image=dubareddy/utils -- bash
+
+27. login -> kubectl exec -it nginx-deployment-744cc6df7d-4rvjw -- bash
+
+28. vi /etc/kubernetes/manifests/kube-apiserver.yaml
+
+29. kubectl run -it --rm --image=mysql:5.6 --restart=Never 
+
+30.  mysql -h10.244.1.212 -p  ->login inside the pod
+
+31 kubectl exec -ti mysql-795c94fcdf-2zfzm -- mysql -h10.244.1.212 -p
+   
+
+
+
 
   
 
