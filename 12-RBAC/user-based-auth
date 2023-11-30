@@ -1,0 +1,91 @@
+kubectl create namespace harins
+openssl genrsa -out employee.key 2048
+
+openssl req -new -key employee.key -out employee.csr -subj "/CN=hari/O=devopsgroup"
+
+openssl x509 -req -in employee.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out employee.crt -days 500
+
+kubectl config set-credentials hari --client-certificate=employee.crt --client-key=employee.key
+
+kubectl config set-context employee-context --cluster=kubernetes --namespace=harins --user=hari
+
+kubectl --context=employee-context get pods
+
+controlplane $ kubectl  config view
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://172.30.1.2:6443
+  name: kubernetes
+contexts:
+- context:
+    cluster: kubernetes
+    namespace: harins
+    user: hari
+  name: employee-context
+- context:
+    cluster: kubernetes
+    user: kubernetes-admin
+  name: kubernetes-admin@kubernetes
+current-context: kubernetes-admin@kubernetes
+kind: Config
+preferences: {}
+users:
+- name: hari
+  user:
+    client-certificate: /root/employee.crt
+    client-key: /root/employee.key
+- name: hsari
+  user:
+    client-certificate: /root/employee.crt
+    client-key: /root/employee.key
+- name: kubernetes-admin
+  user:
+    client-certificate-data: DATA+OMITTED
+    client-key-data: DATA+OMITTED
+
+kubectl config get-contexts
+
+CURRENT   NAME                          CLUSTER      AUTHINFO           NAMESPACE
+          employee-context              kubernetes   hari               harins
+*         kubernetes-admin@kubernetes   kubernetes   kubernetes-admin 
+
+controlplane $ kubectl config use-context employee-context
+Switched to context "employee-context".
+
+controlplane $ kubectl config get-contexts
+CURRENT   NAME                          CLUSTER      AUTHINFO           NAMESPACE
+*         employee-context              kubernetes   hari               harins
+          kubernetes-admin@kubernetes   kubernetes   kubernetes-admin   
+
+
+Now create role binding
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1 #rbac.authorization.k8s.io/v1beta1
+metadata:
+  namespace: harins
+  name: deployment-manager
+rules:
+- apiGroups: ["", "extensions", "apps"]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch", "create","delete", "update", "patch"] # You can also use ["*"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1 #rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: deployment-manager-binding
+  namespace: harins
+subjects:
+- kind: User     #Group, ServiceAccount
+  name: hari
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: deployment-manager
+  apiGroup: ""
+
+
+
+
+kubectl create -f role-rolebinding.yaml --context=kubernetes-admin@kubernetes

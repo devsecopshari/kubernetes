@@ -1,0 +1,163 @@
+kubectl create namespace harins
+openssl genrsa -out employee.key 2048
+
+openssl req -new -key employee.key -out employee.csr -subj "/CN=hari/O=sudheer"
+
+openssl x509 -req -in employee.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out employee.crt -days 500
+
+kubectl config set-credentials hari --client-certificate=employee.crt --client-key=employee.key
+
+kubectl config set-context employee-context --cluster=kubernetes --namespace=harins --user=hari
+
+
+
+controlplane $ kubectl  config view
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://172.30.1.2:6443
+  name: kubernetes
+contexts:
+- context:
+    cluster: kubernetes
+    namespace: harins
+    user: hari
+  name: employee-context
+- context:
+    cluster: kubernetes
+    user: kubernetes-admin
+  name: kubernetes-admin@kubernetes
+current-context: kubernetes-admin@kubernetes
+kind: Config
+preferences: {}
+users:
+- name: hari
+  user:
+    client-certificate: /root/employee.crt
+    client-key: /root/employee.key
+- name: hsari
+  user:
+    client-certificate: /root/employee.crt
+    client-key: /root/employee.key
+- name: kubernetes-admin
+  user:
+    client-certificate-data: DATA+OMITTED
+    client-key-data: DATA+OMITTED
+
+kubectl config get-contexts
+
+CURRENT   NAME                          CLUSTER      AUTHINFO           NAMESPACE
+          employee-context              kubernetes   hari               harins
+*         kubernetes-admin@kubernetes   kubernetes   kubernetes-admin 
+
+kubectl get sa --all-namespaces
+
+kubectl create sa -n harins
+
+controlplane $ kubectl apply -f secret.yaml 
+apiVersion: v1
+kind: Secret
+metadata:
+  name: build-robot-secret
+  namespace: harins
+  annotations:
+    kubernetes.io/service-account.name: harisa
+type: kubernetes.io/service-account-token
+
+secret/build-robot-secret created
+controlplane $ kubectl describe sa/harisa -n harins
+Name:                harisa
+Namespace:           harins
+Labels:              <none>
+Annotations:         <none>
+Image pull secrets:  <none>
+Mountable secrets:   <none>
+Tokens:              build-robot-secret
+Events:              <none>
+controlplane $ kubectl describe secret/build-robot-secret -n harins
+Name:         build-robot-secret
+Namespace:    harins
+Labels:       <none>
+Annotations:  kubernetes.io/service-account.name: harisa
+              kubernetes.io/service-account.uid: 14b8a45e-f2e8-46f9-ba7d-481bc942477b
+
+Type:  kubernetes.io/service-account-token
+
+Data
+====
+ca.crt:     1107 bytes
+namespace:  6 bytes
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IkxSZy05cXNSX0c4TUpjZ3Z0dVNkVGlLNTdNQ0l5ay1ubGY2T3VVR3VKN0kifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJoYXJpbnMiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlY3JldC5uYW1lIjoiYnVpbGQtcm9ib3Qtc2VjcmV0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImhhcmlzYSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjE0YjhhNDVlLWYyZTgtNDZmOS1iYTdkLTQ4MWJjOTQyNDc3YiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpoYXJpbnM6aGFyaXNhIn0.i0QlVfVvDdr5qv_vQU7dfkkYcXmbRAY0i_3w-Kh86Bh806we1oE7QN9QbY-_32LXfgvf7UoAA2qLU1Z_MqEbC3IJH9k1HUkM35QO4LQK4pK7bjd7G4OA35PtqHiceDCN76cDd5kXa9DK-0KcZOHX6wcaZC5ewkS-f192nbs0nSA_INv6MOw6s0oquBspb8_GfvdvruGUQWACHHVpMC_da0Z4jB30OfdshFpD9cqJkF8QIZbUFGaqnLpQ1jGVjQDMwQYaK31WW2mdaqYbRQRoTXHvaZIsYo-rEiwo77nnZpC_XRoKk-9iP0B634R2imsE4GYEpys5fcjQEzVNeFom5A
+
+vi sarbac.yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1 #rbac.authorization.k8s.io/v1beta1(removed before 1.22)
+metadata:
+  name: mynamespace-user-full-access
+  namespace: harins
+rules:
+- apiGroups: ["", "extensions", "apps"]
+  resources: ["pods", "deployments", 'configmaps']
+  verbs: ["get", "create", "list"]       #["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["batch"]
+  resources:
+  - jobs
+  - cronjobs
+  verbs: ["*"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mynamespace-user-view
+  namespace: harins
+subjects:
+- kind: User     #Group, ServiceAccount
+  name: hari
+  apiGroup: ""
+- kind: ServiceAccount #user, group
+  name: harisa
+  namespace: harins
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: mynamespace-user-full-access
+
+  controlplane $ vi sarbac.yaml
+controlplane $ kubectl apply -f sarbac.yaml
+role.rbac.authorization.k8s.io/mynamespace-user-full-access created
+rolebinding.rbac.authorization.k8s.io/mynamespace-user-view created
+
+$ kubectl get secret build-robot-secret -n harins -o "jsonpath={.data.token}" | base64 --decode
+eyJhbGciOiJSUzI1NiIsImtpZCI6IkxSZy05cXNSX0c4TUpjZ3Z0dVNkVGlLNTdNQ0l5ay1ubGY2T3VVR3VKN0kifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJoYXJpbnMiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlY3JldC5uYW1lIjoiYnVpbGQtcm9ib3Qtc2VjcmV0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImhhcmlzYSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjE0YjhhNDVlLWYyZTgtNDZmOS1iYTdkLTQ4MWJjOTQyNDc3YiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpoYXJpbnM6aGFyaXNhIn0.i0QlVfVvDdr5qv_vQU7dfkkYcXmbRAY0i_3w-Kh86Bh806we1oE7QN9QbY-_32LXfgvf7UoAA2qLU1Z_MqEbC3IJH9k1HUkM35QO4LQK4pK7bjd7G4OA35PtqHiceDCN76cDd5kXa9DK-0KcZOHX6wcaZC5ewkS-f192nbs0nSA_INv6MOw6s0oquBspb8_GfvdvruGUQWACHHVpMC_da0Z4jB30OfdshFpD9cqJkF8QIZbUFGaqnLpQ1jGVjQDMwQYaK31WW2mdaqYbRQRoTXHvaZIsYo-rEiwo77nnZpC_XRoKk-9iP0B634R2imsE4GYEpys5fcjQEzVNeFom5Acontrolplane 
+
+$ kubectl get secret build-robot-secret -n harins -o "jsonpath={.data['ca\.crt']}"
+
+ kubectl config set-credentials harisa --token= "paste the secret token"
+
+ vi ~/.kube/config
+
+ kubectl config get-contexts
+
+ controlplane $ kubectl config get-contexts        
+CURRENT   NAME                          CLUSTER      AUTHINFO           NAMESPACE
+          employee-context              kubernetes   hari               harins
+          hari-context                  kubernetes   harisa             harins
+*         kubernetes-admin@kubernetes   kubernetes   kubernetes-admin   
+controlplane $ kubectl config use-context hari-context
+
+controlplane $ kubectl config use-context hari-context
+Switched to context "hari-context".
+controlplane $ kubectl run haripod --image=nginx
+pod/haripod created
+controlplane $ kubectl get pods
+NAME      READY   STATUS    RESTARTS   AGE
+haripod   0/1     Pending   0          14s
+controlplane $ kubectl delete pods 
+error: resource(s) were provided, but no name was specified
+controlplane $ kubectl delete pods haripod
+Error from server (Forbidden): pods "haripod" is forbidden: User "system:serviceaccount:harins:harisa" cannot delete resource "pods" in API group "" in the namespace "harins"
+
+$ kubectl config use-context kubernetes-admin@kubernetes
+
+kubectl auth can-i get pods --as="system:serviceaccount:default:harisa"

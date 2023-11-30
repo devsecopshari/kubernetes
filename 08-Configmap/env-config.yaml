@@ -26,7 +26,7 @@ spec:
               key: special.how
   restartPolicy: Never
 --------------------------------------------------another example-----------------------------
-kubectl create config env-config --from-literal=log_level=info
+kubectl create configmap env-config --from-literal=log_level=info
 
 apiVersion: v1
 kind: ConfigMap
@@ -43,6 +43,7 @@ metadata:
   namespace: default
 data:
   log_level: INFO
+immutable: true
 ---
 apiVersion: v1
 kind: Pod
