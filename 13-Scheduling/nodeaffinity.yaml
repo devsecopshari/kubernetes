@@ -1,0 +1,41 @@
+#Reference: https://docs.openshift.com/container-platform/3.6/admin_guide/scheduling/node_affinity.html
+#The following example is a pod specification with a rule that requires the pod
+#be placed on a node with a label whose key is nginx-demo and whose value is
+#either ssd-server or hdd-server:
+apiVersion: v1
+kind: Pod
+metadata:
+  name: node-affinity-required
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: disk-type
+            operator: In  #This value can be In, NotIn, Lt, or Gt.
+            values:
+            - ssd
+            - hdd
+  containers:
+  - name: nginx
+    image: nginx
+
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: node-affinity-required
+spec:
+  affinity: 
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: rank
+                    operator: Lt
+                    values:
+                      - "5"    
+  containers:
+  - name: nginx
+    image: nginx

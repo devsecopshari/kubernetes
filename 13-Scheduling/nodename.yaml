@@ -1,0 +1,11 @@
+#Launch the POD on specific node using nodename parameter
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  nodeName: k8sworker01 # schedule pod to specific node
+  containers:
+  - name: nginx
+    image: nginx
+    imagePullPolicy: Always
