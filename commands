@@ -76,7 +76,10 @@ metadata:
 30.  mysql -h10.244.1.212 -p  ->login inside the pod
 
 31 kubectl exec -ti mysql-795c94fcdf-2zfzm -- mysql -h10.244.1.212 -p
+
+32. apt install dnsutils #installing n/w packages
    
+
 
 
 

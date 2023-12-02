@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-server
+  template:
+    metadata:
+      labels:
+        app: nginx-server
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - name: podinfo
+            mountPath: /usr/share/nginx/html/index.html
+            subPath: index.html
+      volumes:
+        - name: podinfo
+          downwardAPI:
+            items:
+              - path: "index.html"
+                fieldRef:
+                  fieldPath: metadata.name
+---
+#Below service talks about headless service with selector
+apiVersion: v1
+kind: Service
+metadata:
+  name: headleservice
+spec:
+  clusterIP: None # <-- Don't forget!!
+  selector:
+    app: nginx-server
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

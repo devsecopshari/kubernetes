@@ -1,0 +1,17 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: my-service
+spec:
+  type: ExternalName
+  externalName: sudheerdevops.com
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+
+#kubectl run --generator=run-pod/v1 --rm utils -it --image dubareddy/utils bash
+#kubectl run test-pod -rm -ti --image dubareddy/utils -- bash
+
+nslookup my-service
