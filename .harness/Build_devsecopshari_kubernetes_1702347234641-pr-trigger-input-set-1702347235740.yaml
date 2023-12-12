@@ -1,0 +1,14 @@
+inputSet:
+  name: Build_devsecopshari_kubernetes_1702347234641-pr-trigger-input-set
+  identifier: Build_devsecopshari_kubernetes_1702347234641prtriggerinputset
+  orgIdentifier: default
+  projectIdentifier: default_project
+  pipeline:
+    identifier: Build_devsecopshari_kubernetes_1702347234641
+    properties:
+      ci:
+        codebase:
+          build:
+            type: PR
+            spec:
+              number: <+trigger.prNumber>
